@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Mapa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" /> 
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+    integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+    crossorigin=""></script>
+
+    <!-- Load Esri Leaflet from CDN -->
+    <script src="https://unpkg.com/esri-leaflet@2.3.0/dist/esri-leaflet.js"
+    integrity="sha512-1tScwpjXwwnm6tTva0l0/ZgM3rYNbdyMj5q6RSQMbNX6EUMhYDE3pMRGZaT41zHEvLoWEK7qFEJmZDOoDMU7/Q=="
+    crossorigin=""></script>
+
+    
+
+    <!-- Load Esri Leaflet Geocoder from CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@2.2.14/dist/esri-leaflet-geocoder.css"
+    integrity="sha512-v5YmWLm8KqAAmg5808pETiccEohtt8rPVMGQ1jA6jqkWVydV5Cuz3nJ9fQ7ittSxvuqsvI9RSGfVoKPaAJZ/AQ=="
+    crossorigin="">
+    <script src="https://unpkg.com/esri-leaflet-geocoder@2.2.14/dist/esri-leaflet-geocoder.js"
+    integrity="sha512-uK5jVwR81KVTGe8KpJa1QIN4n60TsSV8+DPbL5wWlYQvb0/nYNgSOg9dZG6ViQhwx/gaMszuWllTemL+K+IXjg=="
+    crossorigin=""></script>
+
+   <style>
+       #mapid{
+           height: 400px;
+           width: 100vw;
+       }
+   </style>
+</head>
+<body>
+
+    <div id="mapid" class="my-5"></div>
+    <div class="container">
+        <div id="overlay"><ul></ul></div>
+    </div>
+
+    <div class="container">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Origen" aria-label="Origen de su viaje" aria-describedby="origen"  id="origen">
+            <div class="input-group-prepend">
+                <button class="btn btn-outline-secondary" type="button" onclick="borrar('origen')">Origen</button>
+            </div>
+          </div>
+          <div class="input-group mb-3">
+              <input type="text" class="form-control" placeholder="Destino" aria-label="Example text with button addon" aria-describedby="destino"  id="destino">
+            <div class="input-group-prepend">
+                <button class="btn btn-outline-secondary" type="button" onclick="borrar('destino')">Destino</button>
+            </div>
+          </div>
+    </div>
+
+    <script>
+        localizar();
+        var origen = document.getElementById('origen');
+        var destino = document.getElementById('destino');
+
+        function borrar(id){
+            document.getElementById(id).value = "";
+        }
+        var markers = new Array();
+        
+
+        function localizar(){
+            var container = L.DomUtil.get('mapid'); 
+            if(container != null){ container._leaflet_id = null; }
+            var latlng = "";
+            navigator.geolocation.getCurrentPosition(function(location) {
+                var latlng = new L.LatLng(location.coords.latitude, location.coords.longitude);
+            
+
+                var mymap = L.map('mapid').setView(latlng, 18);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 18, id: 'mapbox.streets', accessToken: 'pk.eyJ1IjoiYmJyb29rMTU0IiwiYSI6ImNpcXN3dnJrdDAwMGNmd250bjhvZXpnbWsifQ.Nf9Zkfchos577IanoKMoYQ'}).addTo(mymap);
+                
+                var geocodeService = L.esri.Geocoding.geocodeService();
+                geocodeService.reverse().latlng(latlng).run(function(error, result){
+                    var marker = new L.marker(latlng, {draggable:true}).addTo(mymap).bindPopup(result.address.Match_addr).openPopup();
+                    markers[marker._leaflet_id] = marker;
+                    /* console.log(result);
+                    console.log(markers); */
+                    document.getElementById('origen').value = result.address.Match_addr;
+                    var newpos = "";
+                    marker.on("dragend",function(e){
+                        var chagedPos = e.target.getLatLng();
+                        //console.log(chagedPos)
+                        geocodeService.reverse().latlng(chagedPos).run(function(error, result){
+                            newpos = result.address.Match_addr;
+                            //console.log(newpos) 
+                        })
+                        this.bindPopup(newpos).openPopup();
+                        if(origen.value.length == 0 && destino.value.length == 0){
+                            origen.value = newpos;
+                        }else if(origen.value.length != 0 && destino.value.length==0){
+                            destino.value = newpos;
+                        }else if(origen.value.length != 0 && destino.value.length!=0){
+                            destino.value = newpos;
+                        }else if(origen.value.length == 0 && destino.value.length!=0){
+                            origen.value = newpos;
+                        }
+
+                    });
+                });
+                
+            });
+                
+        }
+
+
+    </script>
+</body>
+</html>

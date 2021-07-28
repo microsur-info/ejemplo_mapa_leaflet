@@ -85,7 +85,7 @@
 
                 var mymap = L.map('mapid').setView(latlng, 18);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 18, id: 'mapbox.streets', accessToken: 'pk.eyJ1IjoiYmJyb29rMTU0IiwiYSI6ImNpcXN3dnJrdDAwMGNmd250bjhvZXpnbWsifQ.Nf9Zkfchos577IanoKMoYQ'}).addTo(mymap);
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 18, id: 'mapbox.streets', accessToken: 'TOKEN'}).addTo(mymap);
                 
                 var geocodeService = L.esri.Geocoding.geocodeService();
                 geocodeService.reverse().latlng(latlng).run(function(error, result){
